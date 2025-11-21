@@ -1,0 +1,35 @@
+% This code is suitable for 
+% main_Tn_CG.m
+clear; clc;
+
+n = 128;
+
+%% 1.  Toeplitz matrix T_n(f)
+
+
+k  = (0:n-1)';                 
+c  = zeros(n,1);                
+c(1)       = 4;                 
+c(2:end)   = -4./(4*k(2:end).^2 - 1);   
+
+Tn = toeplitz(c);               
+
+%% 2.  b = 1_n
+b  = ones(n,1);
+
+%% 3. CG Tn x = b
+x0    = zeros(n,1);   
+tol   = 1e-8;         
+maxit = 1000;         
+
+[x, flag, iter, resvec] = myCG(Tn, b, x0, tol, maxit);
+
+fprintf('CG 结束：flag = %d, 迭代次数 = %d, 最终残差范数 = %.3e\n', ...
+        flag, iter, norm(b - Tn*x));
+
+figure;
+semilogy(0:iter, resvec(1:iter+1), 'o-');
+xlabel('Number of iterations k');
+ylabel('||r_k||_2');
+title('CG Method Residual Convergence Curve');
+grid on;
