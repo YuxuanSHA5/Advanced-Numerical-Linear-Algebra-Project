@@ -1,0 +1,33 @@
+n = 100;
+
+% build A with eigenvalues all equal to 1 
+
+p = poly( ones(1,n) );   
+
+a = p(2:end);            
+c = -fliplr(a);          
+
+% matrix A: ones on superdiagonal, last row = c
+A = diag(ones(n-1,1),1);
+A(n,:) = c;             
+
+%right-hand side and initial guess 
+b  = [1; zeros(n-1,1)];  % e1
+x0 = zeros(n,1);
+
+% GMRES 
+tol   = 1e-8;
+maxit = n;               
+
+[x,flag,relres,iter,resvec] = gmres(A,b,[],tol,maxit,[],[],x0);
+
+fprintf('flag = %d (0 means converged)\n',flag);
+fprintf('relres = %.3e\n',relres);
+fprintf('iterations used = %d (inner)  %d (outer)\n',iter(2),iter(1));
+
+% (optional) plot residual history
+semilogy(0:length(resvec)-1, resvec/norm(b), '-o')
+xlabel('GMRES iteration')
+ylabel('relative residual ||r_k|| / ||b||')
+grid on
+title('GMRES convergence for A with eigenvalues all = 1')
