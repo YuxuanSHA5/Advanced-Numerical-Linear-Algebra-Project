@@ -1,0 +1,15 @@
+function cc = chan_circulant_column(c)
+
+
+n = length(c);
+cc = zeros(n,1);
+
+% k = 0
+cc(1) = c(1);
+
+
+for k = 1:n-1
+    % t_{k-n} = t_{n-k} = c(n-k+1)
+    cc(k+1) = ((n-k)*c(k+1) + k*c(n-k+1)) / n;
+end
+end
