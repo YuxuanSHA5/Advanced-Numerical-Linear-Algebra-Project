@@ -1,0 +1,79 @@
+
+clc; clear; close all;
+
+%% 
+n = 64;
+t = 0.81;
+tol   = 1e-8;      
+maxit = 200;      
+
+%% Matrix A
+A = build_A(n, t);
+
+%  b = e1
+b = zeros(n,1);
+b(1) = 1;
+x0 = zeros(n,1);
+
+%%  CG
+[x_cg, flag_cg, relres_cg, iter_cg, resvec_cg] = ...
+    pcg(A, b, tol, maxit, [], [], x0);
+
+fprintf('===  CG ===\n');
+fprintf('flag   = %d\n', flag_cg);
+fprintf('relres = %.3e\n', relres_cg);
+fprintf('iters  = %d\n\n', iter_cg);            
+
+%% Chan PCG 
+C = chan_prec(n, t);       
+C = (C + C.')/2;           
+L = chol(C, 'lower');     
+
+[x_pcg, flag_pcg, relres_pcg, iter_pcg, resvec_pcg] = ...
+    pcg(A, b, tol, maxit, L, L.', x0);
+
+fprintf('=== PCG + Chan  ===\n');
+fprintf('flag   = %d\n', flag_pcg);
+fprintf('relres = %.3e\n', relres_pcg);
+fprintf('iters  = %d\n\n', iter_pcg);        
+
+%% comparision
+figure;
+semilogy(resvec_cg,  'LineWidth', 1.5); hold on;
+semilogy(resvec_pcg, 'LineWidth', 1.5);
+xlabel('Number of Iterations');
+ylabel('Residual norm');
+legend('CG', 'PCG with Chan preconditioner', 'Location', 'northeast');
+title('Residual comparison between CG and Chan-preconditioned PCG');
+grid on;
+
+%% 
+
+
+function A = build_A(n, t)
+    
+    s = sqrt(t);
+    d = [t; (t+1)*ones(n-1,1)];        
+    e = s * ones(n-1,1);               
+    A = diag(d) + diag(e,1) + diag(e,-1);
+end
+
+function C = chan_prec(n, t)
+   
+    s  = sqrt(t);
+    a0 = t + 1;       
+    a1 = s;           
+
+   
+    c = zeros(n,1);
+    c(1)   = a0;
+    c(2)   = a1;
+    c(end) = a1;
+
+   
+    C = zeros(n);
+    for j = 1:n
+        C(:, j) = circshift(c, j-1);
+    end
+end
+
