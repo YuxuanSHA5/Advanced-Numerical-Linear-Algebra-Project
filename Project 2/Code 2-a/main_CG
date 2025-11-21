@@ -1,0 +1,34 @@
+% main_CG_tridiag.m
+
+clear; clc;
+
+n = 64;
+t = 0.81;
+s = sqrt(t);
+
+main_diag = [t; (t+1)*ones(n-1,1)];   
+off_diag  = s * ones(n-1,1);          
+
+A = diag(main_diag) + diag(off_diag,1) + diag(off_diag,-1);
+
+%% b
+b = zeros(n,1);
+b(1) = 1;   
+
+%% CG method
+x0    = zeros(n,1);   
+tol   = 1e-8;         
+maxit = 1000;         
+
+[x, flag, iter, resvec] = myCG(A, b, x0, tol, maxit);
+
+fprintf('CG 结束：flag = %d, 迭代次数 = %d, 最终残差范数 = %.3e\n', ...
+        flag, iter, norm(b - A*x));
+
+%% convergence curve
+figure;
+semilogy(0:iter, resvec(1:iter+1), 'o-');
+xlabel('Number of Iterations k');
+ylabel('||r_k||_2');
+title('CG method for tridiagonal matrix A');
+grid on;
