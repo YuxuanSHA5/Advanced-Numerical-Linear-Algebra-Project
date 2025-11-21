@@ -1,0 +1,40 @@
+% main_PCG.m
+clear; clc;
+
+n = 128;
+
+%% Toeplitz matrix Tn
+k = (0:n-1)';
+c = zeros(n,1);
+c(1) = 4;
+c(2:end) = -4./(4*k(2:end).^2 - 1);
+Tn = toeplitz(c);
+
+%% Strang  s(Tn)
+%形成 circulant vector
+m = floor(n/2);
+c_circ = [c(1:m+1); flipud(c(2:m))];  
+Sn = gallery('circul', c_circ(1:n)); 
+
+
+b = ones(n,1);
+
+%% 
+tol = 1e-8;
+maxit = 1000;
+
+%  M^{-1} * r  FFT
+
+Mfun = @(x) Sn \ x;
+
+[x,flag,relres,iter,resvec] = pcg(@(x)Tn*x, b, tol, maxit, Mfun);
+
+fprintf('PCG 结束：flag=%d, 迭代次数=%d, 残差=%.3e\n', flag, iter, norm(b - Tn*x));
+
+%% convergence curve
+figure;
+semilogy(0:iter, resvec, 'o-');
+xlabel('Number of Iterations k');
+ylabel('||r_k||_2');
+title('Preconditioned Conjugate Gradient with Strang Preconditioner');
+grid on;
